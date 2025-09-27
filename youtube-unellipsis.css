@@ -1,0 +1,498 @@
+/*
+============================================================
+ 目的 / INTENT
+ - チャンネル名・タイトルを常に全文表示（省略記号なし）
+ - レイアウトの余白は gap に集約し、個別 margin を最小化
+ - 通常型（watch メタデータ）と縦型/カードUI（lockup）の両対応
+ - ShadyCSS/内部 line-clamp を確実に無効化
+ メモ：このスタイルは可能な限り最後に読み込む（!important を併用）
+============================================================
+*/
+
+/********************
+ * レイアウト（共通）
+ ********************/
+/* 意図：行内アイテムの余白を gap に一元化し、折り返しは必要時のみ */
+#top-row {
+  display: flex;
+  flex-wrap: wrap;         /* 必要時のみ折り返し */
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;               /* 要素間の間隔を一元管理 */
+}
+
+/* 意図：owner 内の左右要素も gap に委譲（個別 margin を削除） */
+#owner {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;            /* 余白を受けて詰まりを回避 */
+  gap: 10px;
+}
+
+/* 意図：アップロード情報は縦積み、横余白は親の gap に委譲 */
+#upload-info {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 意図：補助情報は控えめな視覚重み */
+#owner-sub-count {
+  font-size: 12px;
+  color: gray;
+}
+
+/* 意図：ボタンは内容幅に追従しつつ崩れない */
+#sponsor-button,
+#subscribe-button {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin: 5px 0;
+}
+
+/* 画面幅が狭いとき：中央寄せ&全幅ボタンで操作性を確保 */
+@media (max-width: 800px) {
+  #top-row { justify-content: center; }
+  #owner { flex-direction: column; align-items: center; text-align: center; }
+  #channel-name, #owner-sub-count { text-align: center; width: 100%; }
+  #sponsor-button, #subscribe-button { width: 100%; justify-content: center; }
+}
+
+
+/***********************************************************
+ * 通常型（watch メタデータ）：チャンネル名全文表示
+ * 課題対策：flex 子の min-width: auto により溢れ→省略を誘発
+ * 解決：min-width:0 を適用し、line-clamp/ellipsis を完全解除
+ ***********************************************************/
+/* 折り返し可能な幅にする（最重要） */
+#owner #upload-info,
+#owner #upload-info ytd-channel-name,
+#owner #upload-info ytd-channel-name #text-container {
+  min-width: 0 !important;
+}
+
+/* ラッパー側の幅・オーバーフロー制約を解除 */
+#owner #upload-info ytd-channel-name,
+#owner #upload-info ytd-channel-name #container,
+#owner #upload-info ytd-channel-name #text-container {
+  overflow: visible !important;
+  max-width: none !important;
+  width: auto !important;
+}
+
+/* 実テキスト（yt-formatted-string#text）を“普通に折り返す” */
+#owner #upload-info ytd-channel-name #text,
+#owner #upload-info ytd-channel-name #text a.yt-simple-endpoint {
+  display: inline !important;          /* -webkit-box を打ち消す */
+  white-space: normal !important;      /* nowrap を無効化 */
+  overflow: visible !important;
+  text-overflow: unset !important;     /* 省略記号を無効化 */
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  max-height: none !important;
+}
+
+/* 属性ベースの省略指定を無効化（empty 属性でも効く） */
+#owner #upload-info ytd-channel-name [ellipsis-truncate],
+#owner #upload-info ytd-channel-name [ellipsis-truncate-styling] {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+
+
+/***********************************************************
+ * 縦型/カードUI（lockup）：タイトル全文表示
+ * 例：ホーム/検索結果カードの見出し・テキスト
+ ***********************************************************/
+.yt-lockup-metadata-view-model__heading-reset,
+.yt-lockup-metadata-view-model__title,
+.yt-lockup-metadata-view-model__title span,
+.yt-core-attributed-string {
+  white-space: normal !important;      /* 折り返し許可 */
+  overflow: visible !important;        /* はみ出しを隠さない */
+  text-overflow: unset !important;     /* 省略記号を無効化 */
+  display: inline !important;          /* -webkit-box を打ち消す */
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  max-height: none !important;
+}
+
+/* pre-wrap 指定を尊重しつつ、省略を解除 */
+.yt-core-attributed-string--white-space-pre-wrap {
+  white-space: pre-wrap !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
+
+
+/***********************************************************
+ * リッチグリッド内タイトル（旧来要素）対応
+ ***********************************************************/
+yt-formatted-string.style-scope.ytd-rich-grid-media {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  display: inline !important;          /* -webkit-box をやめる */
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  max-height: none !important;
+}
+
+
+/***********************************************************
+ * オプション：1行死守で横スクロール
+ * 使い分け：折り返しではなく“横スクロールでも1行表示したい”場合のみ有効化
+ ***********************************************************/
+/*
+#owner #upload-info ytd-channel-name #text {
+  white-space: nowrap !important;      /* 折り返し禁止 */
+}
+#owner #upload-info ytd-channel-name #text-container {
+  overflow-x: auto !important;         /* 横スクロールで逃がす */
+}
+*/
+
+
+/***********************************************************
+ * 追加パッチ：それでも省略が残る場合の“物理で殴る”系
+ * - flex 子の収まり・幅制約・単語切断をさらに強制
+ ***********************************************************/
+/* さらに親まで min-width:0 を伝播（flex のはみ出し抑止） */
+#top-row, #owner, #upload-info,
+#owner ytd-video-owner-renderer,
+#owner ytd-video-owner-renderer #upload-info,
+#owner #upload-info ytd-channel-name,
+#owner #upload-info ytd-channel-name #container,
+#owner #upload-info ytd-channel-name #text-container {
+  min-width: 0 !important;
+}
+
+/* channel-name 自体を flex 伸縮可能にし、幅制限を解除 */
+#owner #upload-info #channel-name {
+  flex: 1 1 auto !important;
+  max-width: none !important;
+  width: auto !important;
+}
+
+/* テキストがどんな区切りでも必ず折り返せるようにする */
+#owner #upload-info ytd-channel-name #text,
+#owner #upload-info ytd-channel-name #text a.yt-simple-endpoint {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;  /* 単語途中でも改行可 */
+  word-break: break-word !important;   /* レガシー系ブラウザ対策 */
+  line-break: anywhere !important;     /* CJK と混植時の行分割を寛容に */
+}
+
+/* 祖先側の overflow:hidden が噛んでいた場合に備えて解放 */
+#owner, #owner * {
+  overflow: visible !important;
+}
+
+
+/***********************************************************
+ * Claude 版をベースにした軽量化＆安定化パッチ
+ * - 重要度の高い !important は維持、冗長な重複は削減
+ * - 1行死守（nowrap）と複数行折返し（wrap）を切替可能に
+ *   → body に .ytcn-nowrap / .ytcn-wrap を付け替えるだけ
+ ***********************************************************/
+
+/* ========== 切替用：デフォルトは Claude と同じ 1 行表示 ========== */
+body.ytcn-nowrap #channel-name,
+body.ytcn-nowrap #channel-name yt-formatted-string,
+body.ytcn-nowrap #channel-name yt-formatted-string[ellipsis-truncate],
+body.ytcn-nowrap #channel-name yt-formatted-string[ellipsis-truncate-styling],
+body.ytcn-nowrap ytd-video-owner-renderer #channel-name yt-formatted-string,
+body.ytcn-nowrap ytd-video-owner-renderer #text-container yt-formatted-string {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  max-width: none !important;
+  width: auto !important;
+  flex-shrink: 0 !important;
+}
+
+/* 収まり対策：flex 祖先に min-width:0 を伝播（Claude 版の肝） */
+body.ytcn-nowrap #top-row,
+body.ytcn-nowrap #owner,
+body.ytcn-nowrap #upload-info,
+body.ytcn-nowrap ytd-video-owner-renderer,
+body.ytcn-nowrap ytd-video-owner-renderer #upload-info,
+body.ytcn-nowrap #channel-name #text-container {
+  min-width: 0 !important;
+}
+
+/* アクション領域の右寄せは据え置き */
+body.ytcn-nowrap #actions { margin-left: auto !important; flex: 0 0 auto !important; }
+
+/* ========== 折返し表示モード（必要ならこちらのクラスを付与） ========== */
+body.ytcn-wrap #channel-name,
+body.ytcn-wrap #channel-name yt-formatted-string,
+body.ytcn-wrap #channel-name yt-formatted-string[ellipsis-truncate],
+body.ytcn-wrap #channel-name yt-formatted-string[ellipsis-truncate-styling],
+body.ytcn-wrap ytd-video-owner-renderer #channel-name yt-formatted-string,
+body.ytcn-wrap ytd-video-owner-renderer #text-container yt-formatted-string {
+  white-space: normal !important;      /* 折返し可 */
+  overflow: visible !important;
+  text-overflow: unset !important;
+  max-width: none !important;
+  width: auto !important;
+}
+
+/* 長英単語やスラッシュ区切りでも必ず折れるように */
+body.ytcn-wrap #channel-name yt-formatted-string,
+body.ytcn-wrap #channel-name yt-formatted-string a {
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  line-break: anywhere !important;
+}
+
+/* どちらのモードでも効かせたい最小セット（祖先 overflow の解除） */
+#owner, #owner * { overflow: visible !important; }
+
+/* アクセシビリティ配慮：tooltip を完全に消す代わりに非表示のみ推奨 */
+/* 完全非表示にしたい場合は下記の display:none を使う（既存互換） */
+/* tp-yt-paper-tooltip { display:none !important; } */
+/* 推奨は以下（スクリーンリーダー用に DOM は残す） */
+tp-yt-paper-tooltip { visibility: hidden !important; }
+
+
+/***********************************************************
+ * 追加プロファイル：強制非表示対抗（一定幅未満での hide を上書き）
+ * 呼び出し：<body class="ytcn-nowrap ytcn-anti-hide"> など（wrap 併用可）
+ * 元ネタ：ユーザー提供「改行戦略版」を安全に統合しつつ冗長箇所を整理
+ ***********************************************************/
+
+/* —— ベース：チャンネル名の省略防止（1行死守モードのまま適用） —— */
+body.ytcn-anti-hide #channel-name,
+body.ytcn-anti-hide #channel-name yt-formatted-string,
+body.ytcn-anti-hide #channel-name yt-formatted-string[ellipsis-truncate],
+body.ytcn-anti-hide #channel-name yt-formatted-string[ellipsis-truncate-styling],
+body.ytcn-anti-hide ytd-video-owner-renderer #channel-name yt-formatted-string,
+body.ytcn-anti-hide ytd-video-owner-renderer #text-container yt-formatted-string {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  max-width: none !important;
+  width: auto !important;
+  flex-shrink: 0 !important;
+}
+
+/* ラッパー側の流れを詰まらせない（幅制約解除＋収まり改善） */
+body.ytcn-anti-hide #text-container,
+body.ytcn-anti-hide #container,
+body.ytcn-anti-hide ytd-channel-name #container,
+body.ytcn-anti-hide ytd-channel-name #text-container {
+  overflow: visible !important;
+  max-width: none !important;
+  width: auto !important;
+  min-width: 0 !important;
+}
+
+/* トップ行は改行可能、アイテム間は gap で整理 */
+body.ytcn-anti-hide #top-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* チャンネル情報領域の幅確保（しきい値はメディアクエリで調整） */
+body.ytcn-anti-hide #owner {
+  display: flex !important;
+  align-items: center !important;
+  flex: 1 1 auto !important;
+  min-width: 300px !important; /* 900px/800px ブレークで段階的に縮小 */
+  margin-bottom: 0 !important;
+  gap: 10px !important;
+}
+
+body.ytcn-anti-hide #upload-info {
+  display: flex !important;
+  flex-direction: column !important;
+  margin-left: 10px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+/* アクション領域は必要に応じて改行可能に */
+body.ytcn-anti-hide #actions { flex: 0 0 auto !important; min-width: fit-content !important; }
+body.ytcn-anti-hide #actions-inner { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; }
+
+/* —— 画面幅に応じた強制表示（YouTube 側の hide を上書き） —— */
+@media (max-width: 900px) {
+  body.ytcn-anti-hide #owner { min-width: 250px !important; }
+}
+
+@media (max-width: 800px) {
+  body.ytcn-anti-hide #actions {
+    flex-basis: 100% !important;
+    align-self: center !important;
+    margin-top: 8px !important;
+  }
+  body.ytcn-anti-hide #owner { min-width: 200px !important; flex: 1 1 100% !important; }
+}
+
+@media (max-width: 640px) {
+  /* 強制非表示（display:none/visibility:hidden/opacity:0 など）への対抗 */
+  body.ytcn-anti-hide #upload-info,
+  body.ytcn-anti-hide ytd-video-owner-renderer #upload-info,
+  body.ytcn-anti-hide #channel-name,
+  body.ytcn-anti-hide ytd-video-owner-renderer #channel-name,
+  body.ytcn-anti-hide #owner-sub-count,
+  body.ytcn-anti-hide ytd-video-owner-renderer #owner-sub-count {
+    display: flex !important;         /* block でも可。upload-info は列のため flex */
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  body.ytcn-anti-hide #owner-sub-count { display: block !important; font-size: 12px !important; }
+  body.ytcn-anti-hide #owner { min-width: 180px !important; }
+}
+
+@media (max-width: 480px) {
+  body.ytcn-anti-hide #top-row { flex-direction: column !important; align-items: stretch !important; }
+  body.ytcn-anti-hide #owner { order: 1 !important; min-width: auto !important; margin-bottom: 10px !important; }
+  body.ytcn-anti-hide #actions { order: 2 !important; flex-basis: auto !important; align-self: center !important; margin-top: 0 !important; }
+  body.ytcn-anti-hide #sponsor-button, body.ytcn-anti-hide #subscribe-button { margin: 4px 0 !important; }
+  body.ytcn-anti-hide #channel-name yt-formatted-string { font-size: 14px !important; line-height: 1.3 !important; }
+  body.ytcn-anti-hide #owner-sub-count { font-size: 11px !important; }
+}
+
+@media (max-width: 360px) {
+  body.ytcn-anti-hide #upload-info { margin-left: 8px !important; }
+  body.ytcn-anti-hide #channel-name yt-formatted-string { font-size: 13px !important; }
+  body.ytcn-anti-hide #owner-sub-count { font-size: 10px !important; }
+  body.ytcn-anti-hide #avatar, body.ytcn-anti-hide yt-img-shadow#avatar { width: 32px !important; height: 32px !important; }
+  body.ytcn-anti-hide #avatar img { width: 32px !important; height: 32px !important; }
+}
+
+/* ボタン縦並び（600px 以下） */
+@media (max-width: 600px) {
+  body.ytcn-anti-hide ytd-video-owner-renderer { display: flex !important; flex-direction: column !important; align-items: flex-start !important; }
+  body.ytcn-anti-hide #sponsor-button, body.ytcn-anti-hide #subscribe-button { align-self: flex-start !important; margin-top: 8px !important; width: fit-content !important; }
+}
+
+/* リッチグリッド側は既存の全文表示設定を継承（そのまま） */
+
+/* tooltip は A11y のため visibility 隠し推奨。完全無効は下行に切替 */
+body.ytcn-anti-hide tp-yt-paper-tooltip { visibility: hidden !important; }
+/* body.ytcn-anti-hide tp-yt-paper-tooltip { display: none !important; } */
+
+/* 追加の安全策：YouTube の JS による display/visibility 切替を更に打消し */
+@media (max-width: 639px) {
+  body.ytcn-anti-hide #upload-info *,
+  body.ytcn-anti-hide #channel-name *,
+  body.ytcn-anti-hide #text-container * {
+    display: inherit !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+
+/***********************************************************
+ * Shorts 対応（Reels 系 DOM への適用）
+ * 対象要素例：
+ * - ytd-reel-player-header-renderer（再生ページ上部のヘッダー）
+ * - ytd-reel-video-renderer / ytd-reel-item-renderer（一覧カード）
+ * - ytd-reel-shelf-renderer（ショーツ棚）
+ * 使い方：必要ページで <body class="ytcn-anti-hide ytcn-nowrap"> あるいは
+ *         <body class="ytcn-anti-hide ytcn-wrap"> を付与（既存モード流用）
+ ***********************************************************/
+
+/* —— レイアウトの詰まり回避：min-width:0 の伝播 —— */
+body.ytcn-anti-hide :is(ytd-reel-player-header-renderer,
+                        ytd-reel-video-renderer,
+                        ytd-reel-item-renderer,
+                        ytd-reel-shelf-renderer) {
+  min-width: 0 !important;
+}
+body.ytcn-anti-hide :is(ytd-reel-player-header-renderer,
+                        ytd-reel-video-renderer,
+                        ytd-reel-item-renderer,
+                        ytd-reel-shelf-renderer) * {
+  min-width: 0 !important;
+}
+
+/* —— 共通：省略記号/行数制限を解除（wrap/nowrap はモードで切替） —— */
+/* ノード群：channel-name / ytd-channel-name / text-container / yt-formatted-string */
+body.ytcn-anti-hide.ytcn-nowrap :is(ytd-reel-player-header-renderer,
+                                    ytd-reel-video-renderer,
+                                    ytd-reel-item-renderer,
+                                    ytd-reel-shelf-renderer) :is(#channel-name,
+                                                                  ytd-channel-name,
+                                                                  #container,
+                                                                  #text-container,
+                                                                  yt-formatted-string#text,
+                                                                  yt-formatted-string[ellipsis-truncate],
+                                                                  yt-formatted-string[ellipsis-truncate-styling]) {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  display: inline !important;
+  max-height: none !important;
+  max-width: none !important;
+  width: auto !important;
+  flex-shrink: 0 !important;
+}
+
+body.ytcn-anti-hide.ytcn-wrap :is(ytd-reel-player-header-renderer,
+                                  ytd-reel-video-renderer,
+                                  ytd-reel-item-renderer,
+                                  ytd-reel-shelf-renderer) :is(#channel-name,
+                                                                ytd-channel-name,
+                                                                #container,
+                                                                #text-container,
+                                                                yt-formatted-string#text,
+                                                                yt-formatted-string[ellipsis-truncate],
+                                                                yt-formatted-string[ellipsis-truncate-styling]) {
+  white-space: normal !important;     /* 折返し可 */
+  overflow: visible !important;
+  text-overflow: unset !important;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  display: inline !important;
+  max-height: none !important;
+  max-width: none !important;
+  width: auto !important;
+}
+
+/* 折返しを確実化（長英単語/ハッシュタグ/URL 対策） */
+body.ytcn-anti-hide.ytcn-wrap :is(ytd-reel-player-header-renderer,
+                                  ytd-reel-video-renderer,
+                                  ytd-reel-item-renderer,
+                                  ytd-reel-shelf-renderer) :is(yt-formatted-string,
+                                                               yt-formatted-string a) {
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  line-break: anywhere !important;
+}
+
+/* —— 強制非表示対抗：小幅での display/visibility 切替を上書き —— */
+@media (max-width: 640px) {
+  body.ytcn-anti-hide :is(ytd-reel-player-header-renderer,
+                          ytd-reel-video-renderer,
+                          ytd-reel-item-renderer,
+                          ytd-reel-shelf-renderer) :is(#channel-name,
+                                                        ytd-channel-name,
+                                                        #container,
+                                                        #text-container,
+                                                        yt-formatted-string#text) {
+    display: inline !important;   /* header は inline/inline-flex でも OK */
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+/* —— ツールチップは既定で非表示（A11y 配慮は visibility 隠し推奨） —— */
+body.ytcn-anti-hide :is(ytd-reel-player-header-renderer,
+                        ytd-reel-video-renderer,
+                        ytd-reel-item-renderer,
+                        ytd-reel-shelf-renderer) tp-yt-paper-tooltip {
+  visibility: hidden !important; /* 必要なら display:none に切替可 */
+}
