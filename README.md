@@ -1,2 +1,69 @@
-# youtube-unellipsis-style
-Custom CSS for YouTube to always show full channel names, video titles, and metadata. Removes forced truncation (ellipsis), disables hidden elements on narrow screens, and supports Shorts, grids, and watch pages.
+# YouTube Un-Ellipsis Style
+
+YouTube のチャンネル名・動画タイトル・メタデータが  
+勝手に「…」で省略されたり、画面幅によって非表示にされる問題を解決するためのユーザーCSSです。  
+Stylus や UserCSS 対応ブラウザ拡張で読み込むことで、常に全文を表示できます。
+
+---
+
+## 機能一覧
+
+- **チャンネル名**
+  - 省略記号 (`…`) を完全無効化
+  - 狭い画面幅でも強制非表示にならず常に表示
+
+- **動画タイトル**
+  - ホーム / 検索結果 / リッチグリッド / 再生ページで行数制限 (`-webkit-line-clamp`) を解除
+  - 全文折返しまたは 1 行固定を選択可能
+
+- **Shorts（ショート動画）**
+  - 再生ページ上部や一覧カードのチャンネル名の省略を解除
+  - ショーツ棚（shelf）にも対応
+
+- **強制非表示対抗（レスポンシブ対策）**
+  - YouTube は特定の画面幅（例: 640px 未満）でチャンネル名や登録者数を `display:none` や `visibility:hidden` で強制的に隠す挙動があります
+  - 本スタイルはその処理を上書きし、狭い画面幅でも常に情報を表示します
+  - 実際のスマホブラウザでユーザーCSSを直接適用する機会はほとんどありません。この機能は **開発者向けサードパーティアプリやカスタムUI実装の参考** を想定しています
+
+- **レイアウト調整**
+  - Flexbox の `min-width:auto` 問題を `min-width:0` で解消
+  - アクションボタン領域を右寄せ＆改行可能に調整
+
+- **Tooltip 無効化**
+  - hover 時に出る冗長なツールチップを非表示（既定は `visibility:hidden`、完全無効化は `display:none`）
+
+---
+
+## モード切替
+
+`<body>` タグにクラスを付与することで表示モードを切替できます。
+
+- `ytcn-nowrap` : 1 行固定（横スクロールで全表示）
+- `ytcn-wrap` : 折返し許可（長いチャンネル名や英語混植でも改行）
+- `ytcn-anti-hide` : 狭幅での強制非表示を上書き
+
+例：
+```html
+<body class="ytcn-wrap ytcn-anti-hide">
+```
+
+---
+
+## 導入方法
+
+1. ブラウザに [Stylus](https://add0n.com/stylus.html) 拡張をインストール  
+2. このリポジトリの CSS ファイルをインポート  
+3. ページをリロードして動作を確認  
+
+---
+
+## 注意点
+
+- YouTube の DOM / クラス名は頻繁に変わるため、将来的に動作しなくなる可能性があります  
+- Tooltip を完全に消すとスクリーンリーダーにも読まれなくなるので、必要に応じて設定を切替えてください  
+
+---
+
+## ライセンス
+
+MIT
